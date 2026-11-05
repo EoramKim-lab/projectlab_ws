@@ -1,0 +1,10 @@
+PX4 message definitions used by this workspace
+
+Repository: https://github.com/PX4/px4_msgs.git
+Branch: release/1.16
+Commit: 392e831c1f659429ca83902e66820d7094591410
+Tags v1.16.0, v1.16.1 and v1.16.2 all point to this same commit.
+Target PX4-Autopilot firmware: v1.16.0
+
+This keeps the ROS message definitions on the PX4 v1.16 release line and
+matches the v1.16.0 firmware topic definitions used by this workspace.
