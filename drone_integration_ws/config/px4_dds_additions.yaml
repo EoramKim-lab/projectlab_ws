@@ -1,0 +1,17 @@
+# PX4 v1.16.0 default dds_topics.yaml already exports every PX4 topic used by
+# the GPS/IMU/attitude/Offboard pipeline:
+#   /fmu/out/sensor_combined
+#   /fmu/out/vehicle_attitude
+#   /fmu/out/vehicle_local_position
+#   /fmu/out/vehicle_gps_position (px4_msgs::msg::SensorGps)
+#   /fmu/out/estimator_status_flags (px4_msgs::msg::EstimatorStatusFlags)
+#   /fmu/out/vehicle_status
+#   /fmu/out/vehicle_command_ack
+# and subscribes to:
+#   /fmu/in/offboard_control_mode
+#   /fmu/in/trajectory_setpoint
+#   /fmu/in/vehicle_command
+# No custom DDS topic additions are required for this package on PX4 v1.16.
+# Do not replace PX4's dds_topics.yaml with this file.
+publications: []
+subscriptions: []

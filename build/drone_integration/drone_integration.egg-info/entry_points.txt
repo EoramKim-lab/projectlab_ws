@@ -1,0 +1,12 @@
+[console_scripts]
+collision_constraints_node = drone_integration.control.collision_constraints_node:main
+data_logger_node = drone_integration.data_logger_node:main
+flight_report = drone_integration.flight_report:main
+gps_navigation_node = drone_integration.navigation.gps_navigation_node:main
+gz_reference_node = drone_integration.gz_reference_node:main
+gz_scan_time_adapter_node = drone_integration.sensor.gz_scan_time_adapter_node:main
+lidar_receiver_node = drone_integration.sensor.lidar_receiver_node:main
+mpc_node = drone_integration.control.mpc_node:main
+optical_flow_receiver_node = drone_integration.sensor.optical_flow_receiver_node:main
+px4_command_node = drone_integration.control.px4_command_node:main
+px4_imu_receiver_node = drone_integration.sensor.px4_imu_receiver_node:main

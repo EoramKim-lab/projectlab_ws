@@ -1,0 +1,10 @@
+# Optional legacy optical-flow + downward range path. Not used by the active
+# GPS/EKF2 navigation launch. Merge only if optical_flow_receiver_node is used.
+publications:
+  - topic: /fmu/out/sensor_optical_flow
+    type: px4_msgs::msg::SensorOpticalFlow
+  - topic: /fmu/out/vehicle_optical_flow
+    type: px4_msgs::msg::VehicleOpticalFlow
+  - topic: /fmu/out/distance_sensor
+    type: px4_msgs::msg::DistanceSensor
+subscriptions: []

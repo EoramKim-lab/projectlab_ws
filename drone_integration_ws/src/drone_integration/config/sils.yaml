@@ -1,0 +1,98 @@
+/**:
+  ros__parameters:
+    use_sim_time: false
+    monitor_rate: 2.0
+    # XRCE-DDS synchronized measurement age limit, seconds.
+    px4_sample_timeout: 0.25
+    monitor_timeout: 0.5
+    map_frame: map_ned
+    body_frame: base_link_frd
+lidar_receiver_node:
+  ros__parameters:
+    scan_topic: /scan
+    scan_timeout: 0.3
+    min_points: 3
+    min_range: 0.05
+    max_range: 12.0
+    # Gazebo LaserScan: +angle is sensor-left; converter maps to PX4 body FRD.
+    yaw_offset: 0.0
+    upside_down: false
+    scan_convention: gazebo
+    offset_x: 0.0
+    offset_y: 0.0
+    step: 2
+    neighbor_radius: 0.20
+    min_neighbors: 2
+    neighbor_window: 4
+collision_constraints_node:
+  ros__parameters:
+    scan_timeout: 0.3
+    num_sectors: 36
+    constraint_range: 4.0
+    drone_radius: 0.35
+    # Physical clearance guard only; MPC penalizes the additional 0.20 m buffer.
+    safety_margin: 0.0
+px4_command_node:
+  ros__parameters:
+    auto_offboard: true
+    publish_rate: 20.0
+    command_timeout: 0.25
+    sensor_timeout: 0.3
+    max_horizontal_speed: 1.0
+    max_vertical_speed: 0.5
+    max_yaw_rate: 0.6
+    target_system: 1
+    target_component: 1
+
+mpc_node:
+  ros__parameters:
+    # Cartesian [x,y,vx,vy], input [ax,ay]. First step = 1/publish_rate;
+    # remaining 19 steps = dt, giving a 2.9 s horizon at 20 Hz.
+    publish_rate: 20.0
+    dt: 0.15
+    horizon_steps: 20
+    # Fixed eastbound segment aligns with the random Gazebo obstacle scenario.
+    reference_mode: fixed
+    forward_distance: 6.0
+    # Positive height above ground; MPC uses NED target z = -mission_height.
+    mission_height: 1.0
+    max_speed: 1.0
+    reference_speed: 0.5
+    max_acceleration: 1.0
+    drone_radius: 0.35
+    safety_margin: 0.20
+    soft_safety_margin: true
+    # HPIPM QP weight sweep; log-fitted lag-model validation, not Gazebo.
+    # Obstacle slack relaxes only the extra 0.20 m buffer.
+    safety_slack_linear: 300.0
+    safety_slack_quadratic: 3000.0
+    q_velocity: 256.0
+    q_terminal_position: 24.0
+    q_terminal_velocity: 128.0
+    max_obstacles: 8
+    sensor_timeout: 0.25
+    max_scan_state_skew: 0.08
+    obstacle_range: 4.0
+    cluster_gap: 0.25
+    circle_padding: 0.01
+    goal_tolerance: 0.15
+    altitude_gain: 1.0
+    max_vertical_speed: 0.5
+
+data_logger_node:
+  ros__parameters:
+    log_dir: ./results
+    print_values: false
+    missing_timeout: 0.5
+
+gps_navigation_node:
+  ros__parameters:
+    publish_rate: 20.0
+    sensor_timeout: 0.25
+    estimator_flags_timeout: 2.0
+    max_attitude_skew: 0.08
+    max_imu_skew: 0.15
+    require_gnss_aiding: true
+    min_satellites: 6
+    max_gps_eph: 5.0
+    max_gps_epv: 8.0

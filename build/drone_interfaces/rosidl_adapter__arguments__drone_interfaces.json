@@ -1,0 +1,10 @@
+{
+  "package_name": "drone_interfaces",
+  "non_idl_tuples": [
+    "/home/yjh/projectlab_ws/drone_integration_ws/src/drone_interfaces:msg/ObstacleCircles.msg",
+    "/home/yjh/projectlab_ws/drone_integration_ws/src/drone_interfaces:msg/ProcessedScan.msg",
+    "/home/yjh/projectlab_ws/drone_integration_ws/src/drone_interfaces:msg/Halfplanes.msg",
+    "/home/yjh/projectlab_ws/drone_integration_ws/src/drone_interfaces:msg/FlowMeasurement.msg",
+    "/home/yjh/projectlab_ws/drone_integration_ws/src/drone_interfaces:msg/NavigationState.msg"
+  ]
+}

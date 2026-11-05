@@ -1,0 +1,20 @@
+// Exercise the actual generated standalone script without a browser dependency.
+const fs=require('fs'),vm=require('vm'),assert=require('assert');
+const html=fs.readFileSync(process.argv[2],'utf8');
+const code=html.match(/<script>([\s\S]*?)<\/script>/)[1];
+let drawCalls=0;
+const context=new Proxy({}, {get:(obj,key)=>obj[key] || (()=>{drawCalls++}),set:(obj,key,value)=>(obj[key]=value,true)});
+const elements={};
+for(const id of ['title','note','play','reset','speed','seek','time','body','world'])elements[id]={value:id==='speed'?'1':'0',width:id==='world'?1080:720,height:560,getContext:()=>context};
+const sandbox={document:{getElementById:id=>elements[id]},requestAnimationFrame:()=>{},console};
+vm.createContext(sandbox);vm.runInContext(code,sandbox);
+assert(drawCalls>0);assert(elements.title.textContent);assert(Number(elements.seek.max)>10);
+const run=s=>vm.runInContext(s,sandbox);
+elements.seek.value='10';elements.seek.oninput();assert.equal(run('t'),10);
+elements.play.onclick();assert.equal(run('playing'),true);run('tick(1000);tick(2000)');assert.equal(run('t'),11);
+elements.speed.value='4';run('tick(3000)');assert.equal(run('t'),15);
+elements.play.onclick();assert.equal(run('playing'),false);run('tick(4000)');assert.equal(run('t'),15);
+elements.reset.onclick();assert.equal(run('t'),0);assert.equal(run('playing'),false);
+elements.seek.value=elements.seek.max;elements.seek.oninput();assert.equal(run('t'),run('data.duration'));
+elements.play.onclick();assert.equal(run('t'),0);assert.equal(run('playing'),true);
+console.log('PASS: initial canvas render, seek, play, pause, 4x speed, reset, replay from end.');

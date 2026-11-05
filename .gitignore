@@ -1,0 +1,11 @@
+# Runtime logs and generated simulation results
+log/
+logs/
+/sils_sim/results/
+*.log
+*.jsonl
+*.ulg
+
+# Python bytecode caches
+__pycache__/
+*.py[cod]

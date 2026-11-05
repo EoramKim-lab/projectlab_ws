@@ -1,0 +1,28 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from drone_interfaces/msg/ObstacleCircles.msg
+// generated code does not contain a copyright notice
+
+#include "std_msgs/msg/Header.idl"
+
+module drone_interfaces {
+  module msg {
+    @verbatim (language="comment", text=
+      "Generated circles in map NED, before capacity and solver checks." "\n"
+      "Only published for valid scans aligned with navigation; silence is not free space.")
+    struct ObstacleCircles {
+      std_msgs::msg::Header header;
+
+      @verbatim (language="comment", text=
+        "Interleaved center x/y (m); array index is not a persistent tracking ID.")
+      sequence<double> xy;
+
+      sequence<double> radius;
+
+      @verbatim (language="comment", text=
+        "Observed radius + drone radius + safety margin (m).")
+      sequence<double> safe_radius;
+
+      boolean over_capacity;
+    };
+  };
+};

@@ -1,0 +1,32 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from drone_interfaces/msg/FlowMeasurement.msg
+// generated code does not contain a copyright notice
+
+#include "std_msgs/msg/Header.idl"
+
+module drone_interfaces {
+  module msg {
+    typedef double double__2[2];
+    typedef double double__3[3];
+    @verbatim (language="comment", text=
+      "PX4 optical flow and gyro integrals expressed about body FRD axes." "\n"
+      "Downward range is a positive distance, not a NED z position.")
+    struct FlowMeasurement {
+      std_msgs::msg::Header header;
+
+      uint64 px4_timestamp_sample;
+
+      double__2 pixel_flow;
+
+      double__3 delta_angle;
+
+      double integration_dt;
+
+      double distance_m;
+
+      uint8 quality;
+
+      boolean valid;
+    };
+  };
+};

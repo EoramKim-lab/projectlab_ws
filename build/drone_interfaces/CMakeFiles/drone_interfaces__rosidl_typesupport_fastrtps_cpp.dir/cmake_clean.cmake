@@ -1,0 +1,29 @@
+file(REMOVE_RECURSE
+  "CMakeFiles/drone_interfaces__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/drone_interfaces/msg/detail/dds_fastrtps/flow_measurement__type_support.cpp.o"
+  "CMakeFiles/drone_interfaces__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/drone_interfaces/msg/detail/dds_fastrtps/flow_measurement__type_support.cpp.o.d"
+  "CMakeFiles/drone_interfaces__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/drone_interfaces/msg/detail/dds_fastrtps/halfplanes__type_support.cpp.o"
+  "CMakeFiles/drone_interfaces__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/drone_interfaces/msg/detail/dds_fastrtps/halfplanes__type_support.cpp.o.d"
+  "CMakeFiles/drone_interfaces__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/drone_interfaces/msg/detail/dds_fastrtps/navigation_state__type_support.cpp.o"
+  "CMakeFiles/drone_interfaces__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/drone_interfaces/msg/detail/dds_fastrtps/navigation_state__type_support.cpp.o.d"
+  "CMakeFiles/drone_interfaces__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/drone_interfaces/msg/detail/dds_fastrtps/obstacle_circles__type_support.cpp.o"
+  "CMakeFiles/drone_interfaces__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/drone_interfaces/msg/detail/dds_fastrtps/obstacle_circles__type_support.cpp.o.d"
+  "CMakeFiles/drone_interfaces__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/drone_interfaces/msg/detail/dds_fastrtps/processed_scan__type_support.cpp.o"
+  "CMakeFiles/drone_interfaces__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/drone_interfaces/msg/detail/dds_fastrtps/processed_scan__type_support.cpp.o.d"
+  "libdrone_interfaces__rosidl_typesupport_fastrtps_cpp.pdb"
+  "libdrone_interfaces__rosidl_typesupport_fastrtps_cpp.so"
+  "rosidl_typesupport_fastrtps_cpp/drone_interfaces/msg/detail/dds_fastrtps/flow_measurement__type_support.cpp"
+  "rosidl_typesupport_fastrtps_cpp/drone_interfaces/msg/detail/dds_fastrtps/halfplanes__type_support.cpp"
+  "rosidl_typesupport_fastrtps_cpp/drone_interfaces/msg/detail/dds_fastrtps/navigation_state__type_support.cpp"
+  "rosidl_typesupport_fastrtps_cpp/drone_interfaces/msg/detail/dds_fastrtps/obstacle_circles__type_support.cpp"
+  "rosidl_typesupport_fastrtps_cpp/drone_interfaces/msg/detail/dds_fastrtps/processed_scan__type_support.cpp"
+  "rosidl_typesupport_fastrtps_cpp/drone_interfaces/msg/detail/flow_measurement__rosidl_typesupport_fastrtps_cpp.hpp"
+  "rosidl_typesupport_fastrtps_cpp/drone_interfaces/msg/detail/halfplanes__rosidl_typesupport_fastrtps_cpp.hpp"
+  "rosidl_typesupport_fastrtps_cpp/drone_interfaces/msg/detail/navigation_state__rosidl_typesupport_fastrtps_cpp.hpp"
+  "rosidl_typesupport_fastrtps_cpp/drone_interfaces/msg/detail/obstacle_circles__rosidl_typesupport_fastrtps_cpp.hpp"
+  "rosidl_typesupport_fastrtps_cpp/drone_interfaces/msg/detail/processed_scan__rosidl_typesupport_fastrtps_cpp.hpp"
+)
+
+# Per-language clean rules from dependency scanning.
+foreach(lang CXX)
+  include(CMakeFiles/drone_interfaces__rosidl_typesupport_fastrtps_cpp.dir/cmake_clean_${lang}.cmake OPTIONAL)
+endforeach()

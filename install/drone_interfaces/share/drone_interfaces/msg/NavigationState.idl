@@ -1,0 +1,69 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from drone_interfaces/msg/NavigationState.msg
+// generated code does not contain a copyright notice
+
+#include "geometry_msgs/msg/Pose.idl"
+#include "geometry_msgs/msg/Twist.idl"
+#include "geometry_msgs/msg/Vector3.idl"
+#include "std_msgs/msg/Header.idl"
+
+module drone_interfaces {
+  module msg {
+    struct NavigationState {
+      std_msgs::msg::Header header;
+
+      string child_frame_id;
+
+      @verbatim (language="comment", text=
+        "pose: map NED, quaternion xyzw (FRD body -> NED world)." "\n"
+        "twist linear: map NED; angular: body FRD.")
+      geometry_msgs::msg::Pose pose;
+
+      geometry_msgs::msg::Twist twist;
+
+      @verbatim (language="comment", text=
+        "PX4 EKF2 acceleration estimate in map NED.")
+      geometry_msgs::msg::Vector3 acceleration;
+
+      boolean valid;
+
+      string reason;
+
+      @verbatim (language="comment", text=
+        "Freshness of source measurements, seconds.")
+      double local_position_age;
+
+      double gps_age;
+
+      double estimator_flags_age;
+
+      double attitude_age;
+
+      double imu_age;
+
+      @verbatim (language="comment", text=
+        "Raw PX4 SensorGps quality indicators.")
+      double gps_eph;
+
+      double gps_epv;
+
+      uint8 gps_fix_type;
+
+      uint8 gps_satellites_used;
+
+      @verbatim (language="comment", text=
+        "True only when the raw GNSS fix is healthy and EKF2 has a global, non-dead-reckoning reference.")
+      boolean gnss_aided;
+
+      @verbatim (language="comment", text=
+        "PX4 EKF2 EstimatorStatusFlags.cs_gnss_pos (GNSS position fusion intended).")
+      boolean ekf_gnss_fusion;
+
+      @verbatim (language="comment", text=
+        "PX4 EKF2 local position accuracy estimates.")
+      double eph;
+
+      double epv;
+    };
+  };
+};

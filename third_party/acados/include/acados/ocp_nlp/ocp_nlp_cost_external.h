@@ -1,0 +1,129 @@
+/*
+ * Copyright (c) The acados authors.
+ *
+ * This file is part of acados.
+ *
+ * Licensed under the 2-Clause BSD License.
+ */
+
+
+#ifndef ACADOS_OCP_NLP_OCP_NLP_COST_EXTERNAL_H_
+#define ACADOS_OCP_NLP_OCP_NLP_COST_EXTERNAL_H_
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+// blasfeo
+#include "blasfeo_common.h"
+
+// acados
+#include "acados/ocp_nlp/ocp_nlp_cost_common.h"
+#include "acados/utils/external_function_generic.h"
+#include "acados/utils/types.h"
+
+
+/************************************************
+ * model
+ ************************************************/
+
+typedef struct
+{
+    external_function_generic *ext_cost_fun;  // function
+    external_function_generic *ext_cost_fun_jac_hess;  // function, gradient and hessian
+    external_function_generic *ext_cost_fun_jac;  // function, gradient
+    external_function_generic *ext_cost_hess_xu_p;  // jacobian of cost gradient wrt params
+    external_function_generic *ext_cost_adj_ux_pdiff;
+    external_function_generic *ext_cost_grad_p; // gradient of the cost wrt paraams
+    ocp_nlp_cost_common_model *common;  ///< fields shared across cost modules
+    struct blasfeo_dmat numerical_hessian;  // custom hessian approximation
+} ocp_nlp_cost_external_model;
+
+//
+acados_size_t ocp_nlp_cost_external_model_calculate_size(void *config, void *dims);
+//
+void *ocp_nlp_cost_external_model_assign(void *config, void *dims, void *raw_memory);
+
+
+
+/************************************************
+ * options
+ ************************************************/
+
+// NOTE: the exact hessian is always computed if no custom hessian is provided,
+//       the "exact_hess" option is ignored (checked in ocp_nlp_cost_external_opts_update).
+typedef ocp_nlp_cost_common_opts ocp_nlp_cost_external_opts;
+
+//
+void ocp_nlp_cost_external_opts_update(void *config, void *dims, void *opts);
+
+
+/************************************************
+ * memory
+ ************************************************/
+
+typedef struct
+{
+    ocp_nlp_cost_common_memory *common;  ///< fields shared across cost modules
+} ocp_nlp_cost_external_memory;
+
+//
+acados_size_t ocp_nlp_cost_external_memory_calculate_size(void *config, void *dims, void *opts);
+//
+void *ocp_nlp_cost_external_memory_assign(void *config, void *dims, void *opts, void *raw_memory);
+//
+void *ocp_nlp_cost_external_memory_get(void *memory_, const char *field);
+
+/************************************************
+ * workspace
+ ************************************************/
+
+typedef struct
+{
+    struct blasfeo_dmat cost_grad_params_jac;  // jacobian of gradient of cost function wrt parameters
+    struct blasfeo_dvec adj_cost_ux_pdiff;    // adjoint wrt parameters
+    struct blasfeo_dmat tmp_nunx_nunx;
+    struct blasfeo_dmat tmp_nz_nz;
+    struct blasfeo_dmat tmp_nz_nunx;
+    struct blasfeo_dvec tmp_nunxnz;
+    struct blasfeo_dvec tmp_2ns;  // temporary vector of dimension 2*ns
+} ocp_nlp_cost_external_workspace;
+
+//
+acados_size_t ocp_nlp_cost_external_workspace_calculate_size(void *config, void *dims, void *opts);
+//
+size_t ocp_nlp_cost_external_get_external_fun_workspace_requirement(void *config_, void *dims_, void *opts_, void *model_);
+//
+void ocp_nlp_cost_external_set_external_fun_workspaces(void *config_, void *dims_, void *opts_, void *model_, void *workspace_);
+
+
+/************************************************
+ * functions
+ ************************************************/
+
+//
+void ocp_nlp_cost_external_precompute(void *config_, void *dims_, void *model_, void *opts_, void *memory_, void *work_);
+//
+void ocp_nlp_cost_external_config_initialize_default(void *config, int stage);
+//
+void ocp_nlp_cost_external_initialize(void *config_, void *dims, void *model_,
+                                      void *opts_, void *mem_, void *work_);
+//
+void ocp_nlp_cost_external_update_qp_matrices(void *config_, void *dims, void *model_,
+                                               void *opts_, void *memory_, void *work_);
+//
+void ocp_nlp_cost_external_compute_fun(void *config_, void *dims, void *model_,
+                                       void *opts_, void *memory_, void *work_);
+//
+void ocp_nlp_cost_external_compute_jac_p(void *config_, void *dims, void *model_,
+                                       void *opts_, void *memory_, void *work_);
+
+void ocp_nlp_cost_external_compute_gradient(void *config_, void *dims, void *model_,
+                                       void *opts_, void *memory_, void *work_);
+
+void ocp_nlp_cost_external_eval_grad_p(void *config_, void *dims, void *model_, void *opts_, void *memory_, void *work_, struct blasfeo_dvec *out);
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
+
+#endif  // ACADOS_OCP_NLP_OCP_NLP_COST_EXTERNAL_H_

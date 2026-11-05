@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+# Fetch and build only the packages required for raw Qualisys topics.
+set -eo pipefail
+task_ws="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+source /opt/ros/humble/setup.bash
+cd "$task_ws"
+for tool in git vcs rosdep colcon; do
+    if ! command -v "$tool" >/dev/null; then
+        echo "Missing tool: $tool (install git/python3-vcstool/python3-rosdep/python3-colcon-common-extensions)." >&2
+        exit 1
+    fi
+done
+# Skip downloads when the user supplied the repositories as ZIP archives.
+if [[ ! -f src/mocap4ros2_qualisys/qualisys_driver/package.xml || ! -f src/mocap_msgs/package.xml ]]; then
+    vcs import src < config/qualisys.repos
+fi
+for required in src/mocap4ros2_qualisys/qualisys_driver/package.xml src/mocap_msgs/package.xml; do
+    if [[ ! -f "$required" ]]; then
+        echo "Dependency download incomplete: $required. Check network access and rerun." >&2
+        exit 1
+    fi
+done
+rosdep install --from-paths src/mocap4ros2_qualisys/qualisys_driver src/mocap_msgs src/qualisys_mocap_bringup --ignore-src -r -y --rosdistro humble
+# Upstream CMake fetches the SDK tag rt_protocol_1.23 into the build tree.
+colcon build --symlink-install --packages-select mocap4r2_msgs qualisys_driver qualisys_mocap_bringup --cmake-args -DBUILD_TESTING=OFF
+echo "Ready. Source $task_ws/install/setup.bash, then launch with host_name:=<QTM_PC_IP>."

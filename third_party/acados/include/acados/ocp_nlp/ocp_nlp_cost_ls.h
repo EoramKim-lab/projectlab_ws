@@ -1,0 +1,156 @@
+/*
+ * Copyright (c) The acados authors.
+ *
+ * This file is part of acados.
+ *
+ * Licensed under the 2-Clause BSD License.
+ */
+
+
+/// \addtogroup ocp_nlp
+/// @{
+/// \addtogroup ocp_nlp_cost ocp_nlp_cost
+/// @{
+/// \addtogroup ocp_nlp_cost_ls ocp_nlp_cost_ls
+/// \brief This module implements linear-least squares costs of the form
+/// \f$\min_{x,u,z} \| V_x x + V_u u + V_z z - y_{\text{ref}}\|_W^2\f$.
+/// @{
+
+
+#ifndef ACADOS_OCP_NLP_OCP_NLP_COST_LS_H_
+#define ACADOS_OCP_NLP_OCP_NLP_COST_LS_H_
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#include <math.h>
+
+// blasfeo
+#include "blasfeo_common.h"
+
+// acados
+#include "acados/ocp_nlp/ocp_nlp_cost_common.h"
+#include "acados/utils/external_function_generic.h"
+#include "acados/utils/types.h"
+
+
+/************************************************
+ * model
+ ************************************************/
+
+typedef struct
+{
+    // slack penalty has the form z^T * s + .5 * s^T * Z * s
+    struct blasfeo_dmat Cyt;            ///< output matrix: Cy * [u,x] = y; in transposed form
+    struct blasfeo_dmat Vz;             ///< Vz in ls cost Vx*x + Vu*u + Vz*z
+    struct blasfeo_dmat W;              ///< ls norm corresponding to this matrix
+    struct blasfeo_dvec y_ref;          ///< yref
+    ocp_nlp_cost_common_model *common;  ///< fields shared across cost modules
+    double outer_hess_is_diag;
+    int W_changed;                      ///< flag indicating whether W has changed and needs to be refactorized
+    int Cyt_or_scaling_changed;         ///< flag indicating whether Cyt or scaling has changed and Hessian needs to be recomputed
+} ocp_nlp_cost_ls_model;
+
+//
+acados_size_t ocp_nlp_cost_ls_model_calculate_size(void *config, void *dims);
+//
+void *ocp_nlp_cost_ls_model_assign(void *config, void *dims, void *raw_memory);
+//
+int ocp_nlp_cost_ls_model_set(void *config_, void *dims_, void *model_,
+                              const char *field, void *value_);
+//
+int ocp_nlp_cost_ls_model_get(void *config_, void *dims_, void *model_,
+                              const char *field, void *value_);
+
+
+/************************************************
+ * options
+ ************************************************/
+
+// NOTE: the exact hessian is always computed for the ls cost,
+//       the "exact_hess" option is ignored (checked in ocp_nlp_cost_ls_opts_update).
+typedef ocp_nlp_cost_common_opts ocp_nlp_cost_ls_opts;
+
+//
+void ocp_nlp_cost_ls_opts_update(void *config, void *dims, void *opts);
+
+
+
+/************************************************
+ * memory
+ ************************************************/
+
+/// structure containing the memory associated with cost_ls component
+/// of the ocp_nlp module
+typedef struct
+{
+    struct blasfeo_dmat hess;           ///< hessian of cost function
+    struct blasfeo_dmat W_chol;         ///< cholesky factor of weight matrix
+    struct blasfeo_dvec W_chol_diag;    ///< W_chol_diag
+    struct blasfeo_dvec res;            ///< ls residual r(x)
+    ocp_nlp_cost_common_memory *common;  ///< fields shared across cost modules
+} ocp_nlp_cost_ls_memory;
+
+//
+acados_size_t ocp_nlp_cost_ls_memory_calculate_size(void *config, void *dims, void *opts);
+//
+void *ocp_nlp_cost_ls_memory_assign(void *config, void *dims, void *opts, void *raw_memory);
+//
+void *ocp_nlp_cost_ls_memory_get(void *memory_, const char *field);
+
+
+
+/************************************************
+ * workspace
+ ************************************************/
+
+typedef struct
+{
+    struct blasfeo_dmat tmp_nv_ny;   // temporary matrix of dimensions nv, ny
+    struct blasfeo_dmat Cyt_tilde;   // updated Cyt (after z elimination)
+    struct blasfeo_dmat dzdux_tran;  // derivatives of z wrt u and x (tran)
+    struct blasfeo_dvec tmp_ny;      // temporary vector of dimension ny
+    struct blasfeo_dvec tmp_2ns;     // temporary vector of dimension ny
+    struct blasfeo_dvec tmp_nz;      // temporary vector of dimension nz
+    struct blasfeo_dvec y_ref_tilde; // updated y_ref (after z elimination)
+} ocp_nlp_cost_ls_workspace;
+
+//
+acados_size_t ocp_nlp_cost_ls_workspace_calculate_size(void *config, void *dims, void *opts);
+//
+size_t ocp_nlp_cost_ls_get_external_fun_workspace_requirement(void *config_, void *dims_, void *opts_, void *model_);
+//
+void ocp_nlp_cost_ls_set_external_fun_workspaces(void *config_, void *dims_, void *opts_, void *model_, void *workspace_);
+
+
+/************************************************
+ * functions
+ ************************************************/
+
+// computations that are done once when solver is created
+void ocp_nlp_cost_ls_precompute(void *config_, void *dims_, void *model_, void *opts_, void *memory_, void *work_);
+//
+void ocp_nlp_cost_ls_config_initialize_default(void *config, int stage);
+//
+void ocp_nlp_cost_ls_initialize(void *config_, void *dims, void *model_, void *opts_,
+                                void *mem_, void *work_);
+//
+void ocp_nlp_cost_ls_update_qp_matrices(void *config_, void *dims, void *model_,
+                                        void *opts_, void *memory_, void *work_);
+//
+void ocp_nlp_cost_ls_compute_fun(void *config_, void *dims, void *model_, void *opts_,
+                                 void *memory_, void *work_);
+//
+void ocp_nlp_cost_ls_compute_jac_p(void *config_, void *dims, void *model_, void *opts_, void *memory_, void *work_);
+//
+void ocp_nlp_cost_ls_eval_grad_p(void *config_, void *dims, void *model_, void *opts_, void *memory_, void *work_, struct blasfeo_dvec *out);
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
+
+#endif  // ACADOS_OCP_NLP_OCP_NLP_COST_LS_H_
+/// @}
+/// @}
+/// @}

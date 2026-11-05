@@ -1,0 +1,13 @@
+qualisys_driver_node:
+  ros__parameters:
+    # Launch default: QTM PC 192.168.0.34; Jetson client 192.168.0.32.
+    # Override the server address with the launch host_name argument.
+    port: 22222
+    frame_id: qualisys
+    publish_rate: 100
+    frame_count: 0
+    last_frame_number: 0
+    dropped_frame_count: 0
+    qos_history_policy: keep_last
+    qos_reliability_policy: best_effort
+    qos_depth: 10

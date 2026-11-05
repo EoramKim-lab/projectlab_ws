@@ -1,0 +1,226 @@
+/*
+ * Copyright (c) The acados authors.
+ *
+ * This file is part of acados.
+ *
+ * Licensed under the 2-Clause BSD License.
+ */
+
+
+/// \addtogroup ocp_nlp
+/// @{
+/// \addtogroup ocp_nlp_constraints
+/// @{
+
+#ifndef ACADOS_OCP_NLP_OCP_NLP_CONSTRAINTS_BGH_H_
+#define ACADOS_OCP_NLP_OCP_NLP_CONSTRAINTS_BGH_H_
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+// acados
+#include "acados/ocp_qp/ocp_qp_common.h"
+#include "acados/ocp_nlp/ocp_nlp_constraints_common.h"
+#include "acados/utils/external_function_generic.h"
+#include "acados/utils/types.h"
+
+
+
+/************************************************
+ * dims
+ ************************************************/
+
+typedef struct
+{
+    int nx;
+    int nu;
+    int nz;
+    int nb;  // nbx + nbu
+    int nbu; // number of input box constraints
+    int nbx; // number of state box constraints
+    int ng;  // number of general linear constraints
+    int nh;  // number of nonlinear path constraints
+    int ns;  // number of slack variables per side, i.e. lower + upper, nsbu + nsbx + nsg + nsh
+    int ns_derived;  // number of slack variables derived from nsbu + nsbx + nsg + nsh
+    int nsbu;  // number of softened input bounds
+    int nsbx;  // number of softened state bounds
+    int nsg;  // number of softened general linear constraints
+    int nsh;  // number of softened nonlinear constraints
+    int nbue; // number of input box constraints which are equality
+    int nbxe; // number of state box constraints which are equality
+    int nge;  // number of general linear constraints which are equality
+    int nhe;  // number of nonlinear path constraints which are equality
+    int np_global;
+
+} ocp_nlp_constraints_bgh_dims;
+
+//
+acados_size_t ocp_nlp_constraints_bgh_dims_calculate_size(void *config);
+//
+void *ocp_nlp_constraints_bgh_dims_assign(void *config, void *raw_memory);
+//
+void ocp_nlp_constraints_bgh_dims_get(void *config_, void *dims_, const char *field, int* value);
+//
+void ocp_nlp_constraints_bgh_dims_set(void *config_, void *dims_,
+                                      const char *field, const int* value);
+
+
+/************************************************
+ * model
+ ************************************************/
+
+typedef struct
+{
+    int use_idxs_rev;  // flag to indicate if idxs_rev formulation is used
+    int *idxb;
+    int *idxs;
+    int *idxs_rev;
+    int *idxe;
+    struct blasfeo_dvec *dmask;  // pointer to dmask in ocp_nlp_in
+    struct blasfeo_dvec d;  // gathers bounds
+    struct blasfeo_dmat DCt;  // general linear constraint matrix
+            // lg <= [D, C] * [u; x] <= ug
+    external_function_generic *nl_constr_h_fun;  // nonlinear: lh <= h(x,u) <= uh
+    external_function_generic *nl_constr_h_fun_jac;  // nonlinear: lh <= h(x,u) <= uh
+    external_function_generic *nl_constr_h_fun_jac_hess;  // nonlinear: lh <= h(x,u) <= uh
+    external_function_generic *nl_constr_h_jac_p_hess_xu_p;
+    external_function_generic *nl_constr_h_hess_ux_pdiff_adj_pdiff;
+    external_function_generic *nl_constr_h_adj_p;
+} ocp_nlp_constraints_bgh_model;
+
+//
+acados_size_t ocp_nlp_constraints_bgh_model_calculate_size(void *config, void *dims);
+//
+void *ocp_nlp_constraints_bgh_model_assign(void *config, void *dims, void *raw_memory);
+//
+int ocp_nlp_constraints_bgh_model_set(void *config_, void *dims_,
+                         void *model_, const char *field, void *value);
+
+//
+void ocp_nlp_constraints_bgh_model_get(void *config_, void *dims_,
+                         void *model_, const char *field, void *value);
+
+
+/************************************************
+ * options
+ ************************************************/
+
+typedef struct
+{
+    int compute_adj;
+    int compute_hess;
+    int with_solution_sens_wrt_params_forw;
+    int with_solution_sens_wrt_params_adj;
+} ocp_nlp_constraints_bgh_opts;
+
+//
+acados_size_t ocp_nlp_constraints_bgh_opts_calculate_size(void *config, void *dims);
+//
+void *ocp_nlp_constraints_bgh_opts_assign(void *config, void *dims, void *raw_memory);
+//
+void ocp_nlp_constraints_bgh_opts_initialize_default(void *config, void *dims, void *opts);
+//
+void ocp_nlp_constraints_bgh_opts_update(void *config, void *dims, void *opts);
+//
+void ocp_nlp_constraints_bgh_opts_set(void *config, void *opts, char *field, void *value);
+
+
+
+/************************************************
+ * memory
+ ************************************************/
+
+typedef struct
+{
+    struct blasfeo_dvec fun;
+    struct blasfeo_dvec adj;
+    struct blasfeo_dmat *jac_lag_stat_p_global;  // pointer to jacobian of to stationarity condition wrt p_global (nx+nu, np_global)
+    struct blasfeo_dmat *jac_ineq_p_global;  // jacobian of h wrt p_global (nh, np_global)
+    struct blasfeo_dvec constr_eval_no_bounds;
+    struct blasfeo_dvec *ux;     // pointer to ux in nlp_out
+    struct blasfeo_dvec *lam;    // pointer to lam in nlp_out
+    struct blasfeo_dvec *z_alg;  // pointer to z_alg in ocp_nlp memory
+    struct blasfeo_dmat *DCt;    // pointer to DCt in qp_in
+    struct blasfeo_dmat *RSQrq;  // pointer to RSQrq in qp_in
+    struct blasfeo_dmat *dzduxt; // pointer to dzduxt in ocp_nlp memory
+    struct blasfeo_dvec *seed_ux;     // pointer to seed in ocp_nlp memory
+    struct blasfeo_dvec *seed_lam;     // pointer to seed in ocp_nlp memory
+    struct blasfeo_dvec *adj_lag_p_global;
+    struct blasfeo_dvec *orphan_mask;  // pointer to orphan_mask in ocp_nlp memory
+
+    int *idxb;                   // pointer to idxb[ii] in qp_in
+    int *idxs_rev;               // pointer to idxs_rev[ii] in qp_in
+    int *idxe;                   // pointer to idxe[ii] in qp_in
+} ocp_nlp_constraints_bgh_memory;
+
+//
+acados_size_t ocp_nlp_constraints_bgh_memory_calculate_size(void *config, void *dims, void *opts);
+//
+void *ocp_nlp_constraints_bgh_memory_assign(void *config, void *dims, void *opts, void *raw_memory);
+//
+struct blasfeo_dvec *ocp_nlp_constraints_bgh_memory_get_fun_ptr(void *memory_);
+//
+struct blasfeo_dvec *ocp_nlp_constraints_bgh_memory_get_adj_ptr(void *memory_);
+//
+void ocp_nlp_constraints_bgh_memory_set(void *config_, void *dims_, void *memory_, const char *field, void *value);
+//
+
+
+/************************************************
+ * workspace
+ ************************************************/
+
+typedef struct
+{
+    struct blasfeo_dmat jac_lag_p_global;
+    struct blasfeo_dmat tmp_nv_nv;
+    struct blasfeo_dmat tmp_nz_nh;
+    struct blasfeo_dmat tmp_nv_nh;
+    struct blasfeo_dmat tmp_nz_nv;
+    struct blasfeo_dmat hess_z;
+    struct blasfeo_dvec tmp_ni;
+    struct blasfeo_dvec tmp_nh;
+    struct blasfeo_dvec tmp_nh_seed;
+    struct blasfeo_dvec tmp_np_global;
+} ocp_nlp_constraints_bgh_workspace;
+
+//
+acados_size_t ocp_nlp_constraints_bgh_workspace_calculate_size(void *config, void *dims, void *opts);
+//
+size_t ocp_nlp_constraints_bgh_get_external_fun_workspace_requirement(void *config_, void *dims_, void *opts_, void *model_);
+//
+void ocp_nlp_constraints_bgh_set_external_fun_workspaces(void *config_, void *dims_, void *opts_, void *model_, void *workspace_);
+
+/* functions */
+
+//
+void ocp_nlp_constraints_bgh_config_initialize_default(void *config, int stage);
+//
+void ocp_nlp_constraints_bgh_initialize(void *config, void *dims, void *model, void *opts,
+                                    void *mem, void *work);
+//
+void ocp_nlp_constraints_bgh_update_qp_matrices(void *config_, void *dims, void *model_,
+                                            void *opts_, void *memory_, void *work_);
+
+//
+void ocp_nlp_constraints_bgh_compute_fun(void *config_, void *dims, void *model_,
+                                            void *opts_, void *memory_, void *work_);
+//
+void ocp_nlp_constraints_bgh_bounds_update(void *config_, void *dims, void *model_,
+                                            void *opts_, void *memory_, void *work_);
+//
+void ocp_nlp_constraints_bgh_compute_jac_hess_p(void *config_, void *dims_, void *model_,
+                                            void *opts_, void *memory_, void *work_);
+//
+void ocp_nlp_constraints_bgh_compute_adj_p(void* config_, void *dims_, void *model_,
+                                    void *opts_, void *mem_, void *work_, struct blasfeo_dvec *out);
+
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
+
+#endif  // ACADOS_OCP_NLP_OCP_NLP_CONSTRAINTS_BGH_H_
+/// @}
+/// @}

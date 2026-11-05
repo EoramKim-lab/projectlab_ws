@@ -1,0 +1,223 @@
+/*
+ * Copyright (c) The acados authors.
+ *
+ * This file is part of acados.
+ *
+ * Licensed under the 2-Clause BSD License.
+ */
+
+
+#ifndef ACADOS_SIM_SIM_IRK_INTEGRATOR_H_
+#define ACADOS_SIM_SIM_IRK_INTEGRATOR_H_
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#include "acados/sim/sim_common.h"
+#include "acados/utils/types.h"
+
+#include "blasfeo_common.h"
+
+typedef struct
+{
+    int nx;
+    int nu;
+    int nz;
+    int np;
+
+} sim_irk_dims;
+
+
+
+typedef struct
+{
+    /* external functions */
+    // implicit fun - can either be fully implicit ode or dae
+    //          - i.e. dae has z as additional last argument & nz > 0
+    external_function_generic *impl_ode_fun;
+    // implicit ode & jac_x & jax_xdot & jac_z
+    external_function_generic *impl_ode_fun_jac_x_xdot_z;
+    // jax_x & jac_xdot & jac_u & jac_z of implicit ode
+    external_function_generic *impl_ode_jac_x_xdot_u_z;
+    // hessian of implicit ode:
+    external_function_generic *impl_ode_hess;
+    // Jacobian of implicit ode w.r.t. p
+    external_function_generic *impl_dae_jac_p;
+
+} irk_model;
+
+
+
+typedef struct
+{
+    struct blasfeo_dvec *rG;        // residuals of G ((nx+nz)*ns)
+    struct blasfeo_dvec *K;         // internal K variables ((nx+nz)*ns)
+    struct blasfeo_dvec *xt;        // temporary x
+    struct blasfeo_dvec *xn;        // x at each integration step
+    struct blasfeo_dvec xtdot;      // temporary xdot
+
+    struct blasfeo_dvec *lambda;    // adjoint sensitivities (nx + nu)
+    struct blasfeo_dvec *lambdaK;   // auxiliary variable ((nx+nz)*ns) for adjoint propagation
+
+    struct blasfeo_dmat df_dx;     // temporary Jacobian of ode w.r.t x (nx+nz, nx)
+    struct blasfeo_dmat df_dxdot;  // temporary Jacobian of ode w.r.t xdot (nx+nz, nx)
+    struct blasfeo_dmat df_du;     // temporary Jacobian of ode w.r.t u (nx+nz, nu)
+    struct blasfeo_dmat df_dz;     // temporary Jacobian of ode w.r.t z (nx+nz, nu)
+
+    /* NOTE: the memory allocation corresponding to the following fields is CONDITIONAL */
+
+    // only allocated if (opts->sens_algebraic || opts->output_z)
+    int *ipiv_one_stage;  // index of pivot vector (nx + nz)
+    double *Z_work;  // used to perform computations to get out->zn (ns)
+
+    // df_dxdotz, dk0_dxu, only allocated if (opts->sens_algebraic && opts->exact_z_output)
+    //      used for algebraic sensitivity generation
+    struct blasfeo_dmat df_dxdotz;  // temporary Jacobian of ode w.r.t. xdot,z (nx+nz, nx+nz);
+    struct blasfeo_dmat dk0_dxu;    // intermediate result, (nx+nz, nx+nu)
+
+    // dK_dxu: if (!opts->sens_hess) - single blasfeo_dmat that is reused
+    //         if ( opts->sens_hess) - array of (num_steps) blasfeo_dmat
+    //                                  to store intermediate results
+    struct blasfeo_dmat *dK_dxu;  // jacobian of (K,Z) over x and u ((nx+nz)*ns, nx+nu);
+
+    // S_forw: if (!opts->sens_hess) - single blasfeo_dmat that is reused
+    //         if ( opts->sens_hess) - array of (num_steps + 1) blasfeo_dmat
+    //                                  to store intermediate results
+    struct blasfeo_dmat *S_forw;  // forward sensitivities (nx, nx+nu)
+
+    // dG_dxu: if (!opts->sens_hess) - single blasfeo_dmat that is reused
+    //         if ( opts->sens_hess) - array of blasfeo_dmat to store intermediate results
+    struct blasfeo_dmat *dG_dxu;  // jacobian of G over x and u ((nx+nz)*ns, nx+nu)
+
+    // dG_dK:  if (!opts->sens_hess) - single blasfeo_dmat that is reused
+    //         if ( opts->sens_hess) - array of blasfeo_dmat to store intermediate results
+    struct blasfeo_dmat *dG_dK;   // jacobian of G over K ((nx+nz)*ns, (nx+nz)*ns)
+
+    struct blasfeo_dmat *dK_dp;  // sensitivity of K w.r.t p ((nx+nz)*ns, np)
+    struct blasfeo_dmat *df_dp;  // Jacobian of f w.r.t p (nx+nz, np)
+
+    // ipiv: index of pivot vector
+    //         if (!opts->sens_hess) - array (ns * (nx + nz)) that is reused
+    //         if ( opts->sens_hess) - array (ns * (nx + nz)) * num_steps, to store all
+    //              pivot vectors for dG_dxu
+    int *ipiv;  // index of pivot vector
+
+    // xn_traj, K_traj only available if( opts->sens_adj || opts->sens_hess )
+    struct blasfeo_dvec *xn_traj;  // xn trajectory
+    struct blasfeo_dvec *K_traj;   // K trajectory
+
+    /* the following variables are only available if (opts->sens_hess) */
+    // For Hessian propagation
+    struct blasfeo_dmat Hess;   // temporary Hessian (nx + nu, nx + nu)
+    // output of impl_ode_hess
+    struct blasfeo_dmat f_hess;  // size: (nx + nu, nx + nu)
+    struct blasfeo_dmat dxkzu_dw0;  // size (2*nx + nu + nz) x (nx + nu)
+    struct blasfeo_dmat tmp_dxkzu_dw0;  // size (2*nx + nu + nz) x (nx + nu)
+
+    /* the following variables are only available if (opts->cost_propagation) */
+    struct blasfeo_dmat *S_forw_stage;
+
+    /* function argument vectors*/
+    ext_fun_arg_t impl_ode_type_in[5];
+    void *impl_ode_in[5];
+
+    ext_fun_arg_t impl_ode_fun_type_out[1];
+    void *impl_ode_fun_out[1];
+
+    ext_fun_arg_t impl_ode_fun_jac_x_xdot_z_type_out[4];
+    void *impl_ode_fun_jac_x_xdot_z_out[4];
+
+    ext_fun_arg_t impl_ode_jac_x_xdot_u_z_type_out[4];
+    void *impl_ode_jac_x_xdot_u_z_out[4];
+
+    ext_fun_arg_t impl_dae_jac_p_type_out[1];
+    void *impl_dae_jac_p_out[1];
+
+    ext_fun_arg_t impl_ode_hess_type_in[6];
+    void *impl_ode_hess_in[6];
+
+    ext_fun_arg_t impl_ode_hess_type_out[1];
+    void *impl_ode_hess_out[1];
+
+    struct blasfeo_dvec_args impl_ode_xdot_in;
+    struct blasfeo_dvec_args impl_ode_z_in;
+    struct blasfeo_dvec_args impl_ode_res_out;
+    struct blasfeo_dvec_args impl_ode_hess_lambda_in;
+
+    double t_current;
+
+    // Step pointers, populated during helper calls
+    struct blasfeo_dmat *dG_dK_ss;
+    struct blasfeo_dmat *dG_dxu_ss;
+    struct blasfeo_dmat *dK_dxu_ss;
+    struct blasfeo_dmat *S_forw_ss;
+    int *ipiv_ss;
+
+    /* timers */
+    acados_timer timer_ad;
+    acados_timer timer_la;
+
+    double timing_ad;
+    double timing_la;
+} sim_irk_workspace;
+
+
+typedef struct
+{
+    double *xdot;  // xdot[NX] - initialization for state derivatives k within the integrator
+    double *z;     // z[NZ] - initialization for algebraic variables z
+
+    double time_sim;
+    double time_ad;
+    double time_la;
+
+    void *cost_capsule;  // pointer to ocp_nlp_cost_capsule of the cost module
+    struct blasfeo_dmat *cost_hess;
+
+    struct blasfeo_dmat *S_p;
+
+} sim_irk_memory;
+
+
+// get & set functions
+void sim_irk_dims_set(void *config_, void *dims_, const char *field, const int *value);
+void sim_irk_dims_get(void *config_, void *dims_, const char *field, int* value);
+
+// dims
+acados_size_t sim_irk_dims_calculate_size();
+void *sim_irk_dims_assign(void *config_, void *raw_memory);
+
+// model
+acados_size_t sim_irk_model_calculate_size(void *config, void *dims);
+void *sim_irk_model_assign(void *config, void *dims, void *raw_memory);
+int sim_irk_model_set(void *model, const char *field, void *value);
+
+// opts
+acados_size_t sim_irk_opts_calculate_size(void *config, void *dims);
+void *sim_irk_opts_assign(void *config, void *dims, void *raw_memory);
+void sim_irk_opts_initialize_default(void *config, void *dims, void *opts_);
+void sim_irk_opts_update(void *config_, void *dims, void *opts_);
+void sim_irk_opts_set(void *config_, void *opts_, const char *field, void *value);
+
+// memory
+acados_size_t sim_irk_memory_calculate_size(void *config, void *dims, void *opts_);
+void *sim_irk_memory_assign(void *config, void *dims, void *opts_, void *raw_memory);
+int sim_irk_memory_set(void *config_, void *dims_, void *mem_, const char *field, void *value);
+
+// workspace
+acados_size_t sim_irk_workspace_calculate_size(void *config, void *dims, void *opts_);
+
+size_t sim_irk_get_external_fun_workspace_requirement(void *config_, void *dims_, void *opts_, void *model_);
+void sim_irk_set_external_fun_workspaces(void *config_, void *dims_, void *opts_, void *model_, void *workspace_);
+
+void sim_irk_config_initialize_default(void *config);
+
+// main
+int sim_irk(void *config, sim_in *in, sim_out *out, void *opts_, void *mem_, void *work_);
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
+
+#endif  // ACADOS_SIM_SIM_IRK_INTEGRATOR_H_

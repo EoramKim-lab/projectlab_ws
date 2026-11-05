@@ -1,0 +1,5 @@
+Source: https://github.com/PX4/PX4-gazebo-models
+Revision: e05f4312d3f28aa621157610584a4870406cb6d3
+Copied from the PX4 v1.16.0 Gazebo submodule.
+Models: x500_lidar_2d, x500, x500_base, lidar_2d_v2
+Original model.config authorship and available LICENSE files are preserved.

@@ -1,0 +1,19 @@
+Metadata-Version: 2.4
+Name: drone_integration
+Version: 0.2.0
+Summary: PX4 v1.16 ROS 2 GPS/EKF navigation, LiDAR collision avoidance and MPC integration
+Maintainer: Eoram Kim
+Maintainer-email: eoram@example.com
+License: MIT
+License-File: LICENSE
+Requires-Dist: setuptools
+Requires-Dist: numpy
+Requires-Dist: casadi<4,>=3.6
+Requires-Dist: matplotlib
+Requires-Dist: Pillow
+Dynamic: license
+Dynamic: license-file
+Dynamic: maintainer
+Dynamic: maintainer-email
+Dynamic: requires-dist
+Dynamic: summary
